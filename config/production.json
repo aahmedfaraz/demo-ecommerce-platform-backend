@@ -1,0 +1,4 @@
+{
+    "mongoURI": "mongodb+srv://axiom:qwerty12@cluster0.3ywmo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+    "jwtSecret": "axiom-jwt-secret"
+}
