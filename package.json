@@ -1,5 +1,5 @@
 {
-  "name": "axiom-social-app-backend",
+  "name": "axiom-ecommerce-platform-backend",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -9,14 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aahmedfaraz/axiom-social-app-backend.git"
+    "url": "git+https://github.com/aahmedfaraz/axiom-ecommerce-platform-backend.git"
   },
+  "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/aahmedfaraz/axiom-social-app-backend/issues"
+    "url": "https://github.com/aahmedfaraz/axiom-ecommerce-platform-backend/issues"
   },
-  "homepage": "https://github.com/aahmedfaraz/axiom-social-app-backend#readme",
+  "homepage": "https://github.com/aahmedfaraz/axiom-ecommerce-platform-backend#readme",
   "devDependencies": {
     "nodemon": "^2.0.15"
   },
