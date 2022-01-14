@@ -11,27 +11,13 @@ const Order = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true,
       },
-      title: {
-        type: String,
-        required: true,
-      },
-      price: {
+      soldQuantity: {
         type: Number,
         required: true,
       },
-      buyQuantity: {
-        type: Number,
+      buyerID: {
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
-      },
-      buyer: {
-        id: {
-          type: mongoose.Schema.Types.ObjectId,
-          required: true,
-        },
-        name: {
-          type: String,
-          required: true,
-        },
       },
     },
   ],
