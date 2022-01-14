@@ -1,11 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const jwt = require("jsonwebtoken");
 const { check, validationResult } = require("express-validator");
-const User = require("../models/user");
 const Product = require("../models/product");
-const config = require("config");
-const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth");
 
 // @route POST /api/products
@@ -58,7 +54,9 @@ router.post(
 // @acces Private
 router.get("/", auth, async (req, res) => {
   try {
-    const products = await Product.find().select({ __v: 0 });
+    const products = await Product.find({
+      ownerID: { $ne: req.user.id },
+    }).select({ __v: 0 });
     res.status(200).json({ products });
   } catch (err) {
     console.log("Error ", err);
@@ -76,7 +74,7 @@ router.get("/:userID", auth, async (req, res) => {
         msg: "User is not Authorized",
       });
     }
-    const products = await Product.findOne({
+    const products = await Product.find({
       ownerID: req.params.userID,
     }).select({ __v: 0 });
     res.status(200).json({ products });
