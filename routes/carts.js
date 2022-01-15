@@ -108,7 +108,7 @@ router.put(
         return res.status(400).json({ msg: "Cart does not exist." });
       }
 
-      //   Check if product exist inside cart
+      // Check if product exist inside cart
       let productFound = false;
       cart.products.forEach((product) => {
         if (product.productID.toString() === req.params.productID)
@@ -120,42 +120,27 @@ router.put(
           .json({ msg: "Product does not exist in your cart." });
       }
 
-      //   Check if cart is valid to update
-      let allProducts = cart.products.map(async (product) => {
-        if (product.id.toString() === req.params.productID) {
-          try {
-            let sellerProduct = await Product.findById(req.params.productID);
-            if (!sellerProduct) {
-              return res
-                .status(400)
-                .json({ msg: "Product does not exist on Seller end." });
-            }
-            if (req.body.selectedQuantity > sellerProduct.quantity) {
-              return res.status(400).json({
-                msg: `Product ${sellerProduct.title} has ${sellerProduct.quantity} units available only.`,
-              });
-            }
+      // Check if actual product exist on seller end
+      let sellerProduct = await Product.findById(req.params.productID);
+      if (!sellerProduct) {
+        return res
+          .status(400)
+          .json({ msg: "Product does not exist on Seller end." });
+      }
 
-            // Update Product inside Cart
-            return {
-              ...product,
-              selectedQuantity: req.body.selectedQuantity,
-            };
-          } catch (err) {
-            console.log("Error ", err);
-            return res.status(500).json({ msg: "Server Error" });
-          }
-        }
-        return product;
-      });
-
-      const changes = {
-        products: [...allProducts],
-      };
+      // Check if provided quantity is valid
+      if (req.body.selectedQuantity > sellerProduct.quantity) {
+        return res.status(400).json({
+          msg: `Product ${sellerProduct.title} has ${sellerProduct.quantity} units available only.`,
+        });
+      }
 
       cart = await Cart.findOneAndUpdate(
-        { ownerID: req.user.id },
-        { $set: changes },
+        { "products.productID": req.params.productID },
+        // The positional $ operator identifies an element in an array
+        //  to update without explicitly specifying the position of the element
+        //  in the array.
+        { $set: { "products.$.selectedQuantity": req.body.selectedQuantity } },
         { new: true }
       );
 
