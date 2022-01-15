@@ -54,9 +54,7 @@ router.post(
 // @acces Private
 router.get("/", auth, async (req, res) => {
   try {
-    const products = await Product.find({
-      ownerID: { $ne: req.user.id },
-    }).select({ __v: 0 });
+    const products = await Product.find().select({ __v: 0 });
     res.status(200).json({ products });
   } catch (err) {
     console.log("Error ", err);

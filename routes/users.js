@@ -52,17 +52,17 @@ router.post(
       // Add User in Database
       await user.save();
 
-      // Add Cart
+      // Add Cart in Database
       await new Cart({
         ownerID: user.id,
         products: [],
       }).save();
 
-      // Add Orders
+      // Add Orders Table in Database
       await new Order({
         ownerID: user.id,
         products: [],
-      });
+      }).save();
 
       // Return jwt
       const payload = {

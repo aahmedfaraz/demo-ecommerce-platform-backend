@@ -11,7 +11,7 @@ const Order = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true,
       },
-      soldQuantity: {
+      buyQuantity: {
         type: Number,
         required: true,
       },
