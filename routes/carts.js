@@ -16,10 +16,10 @@ router.get("/", auth, async (req, res) => {
     if (!cart) {
       return res.status(400).json({ msg: "Cart does not exist." });
     }
-    res.status(200).json({ cart });
+    return res.status(200).json({ cart });
   } catch (err) {
     console.log("Error ", err);
-    res.status(500).json({ msg: "Server Error" });
+    return res.status(500).json({ msg: "Server Error" });
   }
 });
 
@@ -46,6 +46,14 @@ router.post(
         return res.status(400).json({ msg: "Cart does not exist." });
       }
 
+      // Check if product already exist inside cart
+      cart.products.forEach((product) => {
+        if (product.productID.toString() === req.body.productID)
+          return res
+            .status(400)
+            .json({ msg: "Product already exist in your cart." });
+      });
+
       //   Check if product is valid to update
       let sellerProduct = await Product.findById(req.body.productID);
       if (!sellerProduct) {
@@ -53,6 +61,8 @@ router.post(
           .status(400)
           .json({ msg: "Product does not exist on Seller end." });
       }
+
+      // Check if provided quantity is valid
       if (req.body.selectedQuantity > sellerProduct.quantity) {
         return res.status(400).json({
           msg: `Product ${sellerProduct.title} has ${sellerProduct.quantity} units available only.`,
@@ -60,19 +70,16 @@ router.post(
       }
 
       //   Add new product inside cart
-      const changes = {
-        products: [
-          ...cart.products,
-          {
-            productID: req.body.productID,
-            selectedQuantity: req.body.selectedQuantity,
-          },
-        ],
-      };
-
       cart = await Cart.findByIdAndUpdate(
         cart.id,
-        { $set: changes },
+        {
+          $push: {
+            products: {
+              productID: req.body.productID,
+              selectedQuantity: req.body.selectedQuantity,
+            },
+          },
+        },
         { new: true }
       );
 
@@ -137,9 +144,6 @@ router.put(
 
       cart = await Cart.findOneAndUpdate(
         { "products.productID": req.params.productID },
-        // The positional $ operator identifies an element in an array
-        //  to update without explicitly specifying the position of the element
-        //  in the array.
         { $set: { "products.$.selectedQuantity": req.body.selectedQuantity } },
         { new: true }
       );
