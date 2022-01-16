@@ -158,56 +158,6 @@ router.put(
   }
 );
 
-// @route DELETE /api/carts/:id
-// @desc Delete Cart Product
-// @acces Private
-router.delete("/:productID", auth, async (req, res) => {
-  try {
-    // Check if Cart exist
-    let cart = await Cart.findOne({ ownerID: req.user.id });
-    if (!cart) {
-      return res.status(400).json({ msg: "Cart does not exist." });
-    }
-
-    //   Check if product exist inside cart
-    let productFound = false;
-    cart.products.forEach((product) => {
-      if (product.id === req.params.id) productFound = true;
-    });
-    if (!productFound) {
-      return res
-        .status(400)
-        .json({ msg: "Product does not exist in your cart." });
-    }
-    let product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(400).json({ msg: "Product does not exist" });
-    }
-
-    //   Remove Product
-    cart.products = cart.products.filter(
-      (product) => product.productID !== req.params.productID
-    );
-
-    const changes = {
-      products: [...cart.products],
-    };
-
-    cart = await Cart.findByIdAndUpdate(
-      cart.id,
-      { $set: changes },
-      { new: true }
-    );
-
-    return res.status(200).json({
-      cart,
-    });
-  } catch (err) {
-    console.log("Error ", err);
-    return res.status(500).json({ msg: "Server Error" });
-  }
-});
-
 // @route DELETE /api/carts/buy
 // @desc Buy All Cart Products
 // @acces Private
@@ -233,6 +183,7 @@ router.delete("/buy", auth, async (req, res) => {
     cart.products.map(async (product) => {
       // Get Seller Product
       let sellerProduct = await Product.findById(product.productID);
+
       // Update Stocks
       await Product.findByIdAndUpdate(
         product.productID,
@@ -243,20 +194,17 @@ router.delete("/buy", auth, async (req, res) => {
         },
         { new: true }
       );
+
       // Update Sale record
-      let orders = await Order.findOne({ ownerID: req.user.id });
-      await Order.findByIdAndUpdate(
-        orders.id,
+      await Order.findOneAndUpdate(
+        { ownerID: req.user.id },
         {
-          $set: {
-            products: [
-              ...orders.products,
-              {
-                productID: product.productID,
-                buyQuantity: product.selectedQuantity,
-                buyerID: req.user.id,
-              },
-            ],
+          $push: {
+            products: {
+              productID: product.productID,
+              buyQuantity: product.selectedQuantity,
+              buyerID: req.user.id,
+            },
           },
         },
         { new: true }
@@ -264,12 +212,66 @@ router.delete("/buy", auth, async (req, res) => {
     });
 
     // Update Cart
-    const changes = {
-      products: [],
-    };
     cart = await Cart.findByIdAndUpdate(
       cart.id,
-      { $set: changes },
+      {
+        $set: {
+          products: [],
+        },
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      cart,
+    });
+  } catch (err) {
+    console.log("Error ", err);
+    return res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+// @route DELETE /api/carts/:id
+// @desc Delete Cart Product
+// @acces Private
+router.delete("/:productID", auth, async (req, res) => {
+  try {
+    // Check if Cart exist
+    let cart = await Cart.findOne({ ownerID: req.user.id });
+    if (!cart) {
+      return res.status(400).json({ msg: "Cart does not exist." });
+    }
+
+    //   Check if product exist inside cart
+    let productFound = false;
+    cart.products.forEach((product) => {
+      if (product.productID.toString() === req.params.productID)
+        productFound = true;
+    });
+    if (!productFound) {
+      return res
+        .status(400)
+        .json({ msg: "Product does not exist in your cart." });
+    }
+
+    // Check of product exist on your seller end
+    let product = await Product.findById(req.params.productID);
+    if (!product) {
+      return res
+        .status(400)
+        .json({ msg: "Product does not exist on seller end" });
+    }
+
+    //   Remove Product
+    cart = await Cart.findOneAndUpdate(
+      { "products.productID": req.params.productID },
+      {
+        $pull: {
+          products: {
+            productID: req.params.productID,
+          },
+        },
+      },
       { new: true }
     );
 
